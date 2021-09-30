@@ -1,33 +1,38 @@
 import axios from 'axios';
-
 const service = axios.create({
     // process.env.NODE_ENV === 'development' 来判断是否开发环境
     // easy-mock服务挂了，暂时不使用了
-    // baseURL: 'https://www.easy-mock.com/mock/592501a391470c0ac1fab128',
+    baseURL: 'http://192.168.31.147:8888/api',
     timeout: 5000
 });
+let getToken = () => {
+    if (localStorage.getItem("ms_token")) {
+        return localStorage.getItem("ms_token")
+    }
+    return false
+}
 
 service.interceptors.request.use(
     config => {
+        getToken() ? config.headers["Authorization"] = getToken() : delete config.headers["Authorization"]
         return config;
     },
     error => {
-        console.log(error);
-        return Promise.reject();
+        return Promise.reject(error);
     }
 );
 
 service.interceptors.response.use(
     response => {
         if (response.status === 200) {
-            return response.data;
+            return Promise.resolve(response.data)
         } else {
-            Promise.reject();
+            return Promise.reject(response.data);
         }
     },
-    error => {
-        console.log(error);
-        return Promise.reject();
+    err => {
+        console.log(err);
+        return Promise.reject(err);
     }
 );
 
